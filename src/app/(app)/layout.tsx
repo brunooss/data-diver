@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/sidebar';
 import { Logo } from '@/components/logo';
 import { MainNav } from '@/components/main-nav';
+import { ThemeToggle } from '@/components/theme-toggle';
 
 export default function AppLayout({
   children,
@@ -33,9 +34,8 @@ export default function AppLayout({
       <SidebarInset>
         <header className="flex h-14 items-center gap-4 border-b bg-card px-4 md:px-6">
           <SidebarTrigger className="md:hidden" />
-          <div className="flex-1">
-            {/* Header Content can go here if needed */}
-          </div>
+          <div className="flex-1" />
+          <ThemeToggle />
         </header>
         <main className="flex-1 p-4 md:p-6">{children}</main>
       </SidebarInset>
