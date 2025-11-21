@@ -10,9 +10,15 @@ export default defineConfig({
     globals: true,
     coverage: {
       include: [
-        'src/ai/**',
-        'src/lib/**'
+        'src/lib/**',
+        'src/app/actions.ts'
       ],
+      exclude: [
+        '**/node_modules/**',
+        'next.config.ts',
+        'postcss.config.mjs',
+        'tailwind.config.ts',
+      ]
     }
   },
   // This is a workaround for the following issue:
