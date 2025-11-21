@@ -23,11 +23,14 @@ describe('Server Actions Logic (actions.ts)', () => {
     it('should call handleYesNoAdvice with form data', async () => {
       const formData = new FormData();
       formData.append('context', 'test context');
+      // This is what the action does internally
+      const rawData = { context: formData.get('context') as string }; 
       vi.mocked(yesNo.handleYesNoAdvice).mockResolvedValue({ advice: 'test advice' });
       
       await actions.getYesNoAdviceAction(null, formData);
       
-      expect(yesNo.handleYesNoAdvice).toHaveBeenCalledWith({ context: 'test context' });
+      // The test should assert that the lib function is called with the extracted data
+      expect(yesNo.handleYesNoAdvice).toHaveBeenCalledWith(rawData);
     });
   });
 

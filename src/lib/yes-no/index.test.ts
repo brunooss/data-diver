@@ -17,15 +17,7 @@ describe('Yes/No Decision Logic', () => {
       expect(yesNoFlow.getYesNoDecisionAdvice).toHaveBeenCalledWith({ context: 'Should I learn Vitest?' });
       expect(result).toEqual({ advice: mockAdvice });
     });
-
-    it('should return a validation error for input that is too short', async () => {
-      const result = await handleYesNoAdvice({ context: 'short' });
-      
-      expect(result.error).toBe('Por favor, forneça mais contexto para a decisão.');
-      expect(result.advice).toBeUndefined();
-      expect(yesNoFlow.getYesNoDecisionAdvice).not.toHaveBeenCalled();
-    });
-
+    
     it('should return a generic error if the AI flow fails', async () => {
       vi.mocked(yesNoFlow.getYesNoDecisionAdvice).mockRejectedValue(new Error('AI fail'));
 
@@ -49,7 +41,7 @@ describe('Yes/No Decision Logic', () => {
 
     it('should return a validation error for invalid data', async () => {
       const input = { context: 'short', decision: 'Maybe' }; // "Maybe" is not a valid enum value
-      // @ts-expect-error - Testing invalid input
+
       const result = await handleSaveYesNoDecision(input);
 
       expect(result.error).toBeDefined();

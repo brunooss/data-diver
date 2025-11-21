@@ -18,8 +18,13 @@ const saveYesNoDecisionSchema = yesNoSchema.extend({
  * @param data - The raw input data, usually from a form.
  * @returns An object with either the AI advice or an error message.
  */
-export async function handleYesNoAdvice(data: unknown) {
+export async function handleYesNoAdvice(data: { context: string }) {
   const validation = yesNoSchema.safeParse(data);
+
+  if (data.context.length < 10) {
+    return { error: 'Por favor, forneça mais contexto para a decisão.' };
+  }
+
   if (!validation.success) {
     return { error: validation.error.flatten().fieldErrors.context?.[0] };
   }
