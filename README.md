@@ -3,6 +3,9 @@
 ## Membros do Grupo
 
 *   Bruno Oliveira Souza Santos
+*   Bruno Oliveira Souza Santos
+*   Bruno Oliveira Souza Santos
+*   Bruno Oliveira Souza Santos
 
 ## Sobre o Sistema
 
@@ -30,22 +33,16 @@ Este projeto foi construído utilizando um stack de tecnologias moderno e robust
 
 ## Como Executar os Testes
 
-Para garantir a qualidade e a estabilidade do código, o projeto conta com uma suíte de testes unitários. Para executá-los localmente, siga os passos:
+Para garantir a qualidade e a estabilidade do código, o projeto conta com uma suíte de testes unitários e de integração. Para executá-los localmente e obter o relatório de cobertura, siga os passos:
 
 1.  **Instale as dependências:**
     ```bash
     npm install
     ```
 
-2.  **Rode os testes:**
-    Para executar todos os testes no terminal, use o comando:
+2.  **Rode os testes com cobertura:**
+    Para executar todos os testes e ver o relatório de cobertura de código diretamente no terminal, use o comando:
     ```bash
     npm run test
     ```
-    Este comando também gerará um relatório de cobertura de código.
-
-3.  **Rode os testes com interface gráfica (opcional):**
-    Para uma experiência mais visual e interativa, você pode usar a UI do Vitest com o comando:
-    ```bash
-    npm run test:ui
-    ```
+    Isso executará todos os arquivos de teste `*.test.ts` e, ao final, exibirá uma tabela com a porcentagem de cobertura para os arquivos configurados.
