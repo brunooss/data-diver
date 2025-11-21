@@ -8,15 +8,11 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     globals: true,
-    exclude: [
-      'next.config.ts',
-      '*.js'
-    ],
     coverage: {
-      exclude: [
-        'next.config.ts',
-        '*.js'
-      ]
+      include: [
+        'src/ai/**',
+        'src/lib/**'
+      ],
     }
   },
   // This is a workaround for the following issue:
