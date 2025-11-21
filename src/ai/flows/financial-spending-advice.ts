@@ -6,7 +6,7 @@
  * - FinancialSpendingAdviceInput - O tipo de entrada para a função `getFinancialSpendingAdvice`.
  * - FinancialSpendingAdviceOutput - O tipo de retorno para a função `getFinancialSpendingAdvice`.
  */
-import { ai } from '@/ai/genkit';
+import {ai} from '../../ai/genkit'
 import { z } from 'zod';
 
 const FinancialSpendingAdviceInputSchema = z.object({

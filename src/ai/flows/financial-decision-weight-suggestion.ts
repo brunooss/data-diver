@@ -8,7 +8,7 @@
  * - FinancialWeightOutput - The return type for the suggestFinancialWeights function.
  */
 
-import {ai} from '@/ai/genkit';
+import {ai} from '../../ai/genkit'
 import {z} from 'genkit';
 
 const FinancialWeightInputSchema = z.object({

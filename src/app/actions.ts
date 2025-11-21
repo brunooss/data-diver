@@ -1,13 +1,13 @@
 'use server';
 
 import { z } from 'zod';
-import { getYesNoDecisionAdvice, type YesNoDecisionAdviceInput } from '@/ai/flows/yes-no-decision-advice';
-import { getMultipleChoiceDecisionAdvice, type MultipleChoiceDecisionAdviceInput } from '@/ai/flows/multiple-choice-decision-advice';
-import { suggestFinancialWeights, type FinancialWeightInput } from '@/ai/flows/financial-decision-weight-suggestion';
-import { getFinancialSpendingAdvice, type FinancialSpendingAdviceInput } from '@/ai/flows/financial-spending-advice';
-import { calculateConsortiumMonthlyPayment, calculateConsortiumTotal, calculateFinancingMonthlyPayment, calculateFinancingTotal } from '@/lib/financial-calculations';
-import type { YesNoDecision, MultipleChoiceDecision, FinancialSpendingDecision, FinancialAnalysisDecision, WeightedAnalysisDecision } from '@/lib/types';
-import { getWeightedDecisionSuggestions, type WeightedDecisionSuggestionsInput } from '@/ai/flows/weighted-decision-advice';
+import { getYesNoDecisionAdvice, type YesNoDecisionAdviceInput } from '../ai/flows/yes-no-decision-advice';
+import { getMultipleChoiceDecisionAdvice, type MultipleChoiceDecisionAdviceInput } from '../ai/flows/multiple-choice-decision-advice';
+import { suggestFinancialWeights } from '../ai/flows/financial-decision-weight-suggestion';
+import { getFinancialSpendingAdvice, type FinancialSpendingAdviceInput } from '../ai/flows/financial-spending-advice';
+import { calculateConsortiumMonthlyPayment, calculateConsortiumTotal, calculateFinancingMonthlyPayment, calculateFinancingTotal } from '../lib/financial-calculations';
+import type { YesNoDecision, MultipleChoiceDecision, FinancialSpendingDecision, FinancialAnalysisDecision, WeightedAnalysisDecision } from '../lib/types';
+import { getWeightedDecisionSuggestions, type WeightedDecisionSuggestionsInput } from '../ai/flows/weighted-decision-advice';
 
 // --- Schemas ---
 const yesNoSchema = z.object({

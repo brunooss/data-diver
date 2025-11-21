@@ -6,7 +6,7 @@
  * - WeightedDecisionSuggestionsInput - O tipo de entrada para a função `getWeightedDecisionSuggestions`.
  * - WeightedDecisionSuggestionsOutput - O tipo de retorno para a função `getWeightedDecisionSuggestions`.
  */
-import { ai } from '@/ai/genkit';
+import {ai} from '../../ai/genkit'
 import { z } from 'genkit';
 
 const CriterionSchema = z.object({

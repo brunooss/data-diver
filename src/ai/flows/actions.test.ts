@@ -1,17 +1,17 @@
 import { describe, it, expect, vi } from 'vitest';
-import * as actions from './actions';
-import * as yesNoFlow from '@/ai/flows/yes-no-decision-advice';
-import * as multipleChoiceFlow from '@/ai/flows/multiple-choice-decision-advice';
-import * as financialWeightFlow from '@/ai/flows/financial-decision-weight-suggestion';
-import * as financialSpendingFlow from '@/ai/flows/financial-spending-advice';
-import * as weightedSuggestionsFlow from '@/ai/flows/weighted-decision-advice';
+import * as actions from '../../app/actions';
+import * as yesNoFlow from './yes-no-decision-advice';
+import * as multipleChoiceFlow from './multiple-choice-decision-advice';
+import * as financialWeightFlow from './financial-decision-weight-suggestion';
+import * as financialSpendingFlow from './financial-spending-advice';
+import * as weightedSuggestionsFlow from './weighted-decision-advice';
 
 // Mock AI flows
-vi.mock('@/ai/flows/yes-no-decision-advice');
-vi.mock('@/ai/flows/multiple-choice-decision-advice');
-vi.mock('@/ai/flows/financial-decision-weight-suggestion');
-vi.mock('@/ai/flows/financial-spending-advice');
-vi.mock('@/ai/flows/weighted-decision-advice');
+vi.mock('./yes-no-decision-advice');
+vi.mock('./multiple-choice-decision-advice');
+vi.mock('./financial-decision-weight-suggestion');
+vi.mock('./financial-spending-advice');
+vi.mock('./weighted-decision-advice');
 
 
 describe('Server Actions Logic (actions.ts)', () => {
