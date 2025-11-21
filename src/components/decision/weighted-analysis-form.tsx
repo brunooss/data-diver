@@ -30,12 +30,13 @@ const optionSchema = z.object({
 });
 
 const formSchema = z.object({
-  context: z.string().min(10, 'Por favor, forneça mais contexto para a decisão.'),
+  context: z.string().optional(),
   criteria: z.array(criterionSchema).min(1, 'Adicione pelo menos um critério.'),
   options: z.array(optionSchema).min(2, 'Adicione pelo menos duas opções.'),
 }).refine(data => {
-  const totalWeight = data.criteria.reduce((sum, crit) => sum + (crit.weight || 0), 0);
-  return Math.abs(totalWeight - 100) < 0.01;
+    if (data.criteria.length === 0) return true;
+    const totalWeight = data.criteria.reduce((sum, crit) => sum + (crit.weight || 0), 0);
+    return Math.abs(totalWeight - 100) < 0.01;
 }, {
   message: 'A soma dos pesos de todos os critérios deve ser exatamente 100.',
   path: ['criteria'],
@@ -69,6 +70,7 @@ export function WeightedAnalysisForm() {
       criteria: [{ name: '', weight: 50 }, { name: '', weight: 50 }],
       options: [{ name: '', scores: {} }, { name: '', scores: {} }],
     },
+    mode: 'onChange',
   });
 
   const { fields: criteriaFields, append: appendCriterion, remove: removeCriterion, replace: replaceCriteria } = useFieldArray({ control: form.control, name: "criteria" });
@@ -82,14 +84,17 @@ export function WeightedAnalysisForm() {
   }, [watchedCriteria]);
 
   const finalScores = useMemo(() => {
+    if (!watchedCriteria || !watchedOptions) return [];
     return watchedOptions.map(opt => {
+        if(!opt.name) return { name: '', score: 0 };
         const totalScore = watchedCriteria.reduce((acc, crit) => {
+          if (!crit.name || crit.weight === 0) return acc;
           const score = opt.scores[crit.name] || 0;
           const weight = crit.weight / 100;
           return acc + (score * weight);
         }, 0);
         return { name: opt.name, score: totalScore };
-    }).sort((a, b) => b.score - a.score);
+    }).filter(s => s.name).sort((a, b) => b.score - a.score);
   }, [watchedCriteria, watchedOptions]);
   
   useEffect(() => {
@@ -101,16 +106,31 @@ export function WeightedAnalysisForm() {
         replaceCriteria(newCriteria);
         toast({ title: 'Critérios Sugeridos!', description: 'A IA sugeriu alguns critérios para você começar.' });
     }
-  }, [suggestionState, toast, replaceCriteria]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [suggestionState]);
 
   const handleSave = (decision: string) => {
+    if (!form.getValues('context')) {
+        toast({ variant: 'destructive', title: 'Contexto Necessário', description: 'Por favor, forneça um contexto para a decisão antes de salvar.' });
+        return;
+    }
+     const validation = formSchema.safeParse(form.getValues());
+    if (!validation.success) {
+      toast({
+        variant: "destructive",
+        title: "Erro de Validação",
+        description: validation.error.flatten().formErrors[0] || "Verifique os campos do formulário.",
+      });
+      return;
+    }
+
     startSavingTransition(async () => {
-      const result = await saveWeightedAnalysisAction({ ...form.getValues(), decision });
+      const result = await saveWeightedAnalysisAction({ ...validation.data, decision });
       if (result.decision) {
         addDecision(result.decision);
         toast({
           title: 'Decisão Salva',
-          description: `Sua análise para "${result.decision.context.substring(0,30)}..." foi salva.`,
+          description: `Sua análise para "${result.decision.context?.substring(0,30)}..." foi salva.`,
         });
         form.reset();
         suggestionState.suggestions = null;
@@ -125,11 +145,21 @@ export function WeightedAnalysisForm() {
   return (
     <div className="space-y-6">
       <Form {...form}>
-        <form action={suggestionAction} className="space-y-4">
+        <form 
+            noValidate
+            action={(formData) => {
+                const cleanCriteria = watchedCriteria.filter(c => c.name.trim() !== '');
+                const cleanOptions = watchedOptions.filter(o => o.name.trim() !== '');
+                formData.set('existingCriteria', JSON.stringify(cleanCriteria));
+                formData.set('existingOptions', JSON.stringify(cleanOptions));
+                suggestionAction(formData);
+            }} 
+            className="space-y-6"
+        >
             <Card>
                 <CardHeader>
                     <CardTitle>1. Contexto da Decisão</CardTitle>
-                    <CardDescription>Primeiro, descreva a decisão que você está tentando tomar. Isso ajudará a IA a sugerir critérios relevantes.</CardDescription>
+                    <CardDescription>Primeiro, descreva a decisão que você está tentando tomar (opcional). Isso ajudará a IA a sugerir critérios relevantes.</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <FormField
@@ -149,119 +179,120 @@ export function WeightedAnalysisForm() {
                     <SuggestionButton />
                 </CardFooter>
             </Card>
-        </form>
+        
+            {isSuggestionPending && (
+                <Alert>
+                    <Sparkles className="h-4 w-4" />
+                    <AlertTitle>Buscando sugestões...</AlertTitle>
+                    <AlertDescription>
+                        <Skeleton className="h-4 w-3/4 mt-2" />
+                        <Skeleton className="h-4 w-1/2 mt-2" />
+                    </AlertDescription>
+                </Alert>
+            )}
 
-        {isSuggestionPending && (
-            <Alert>
-                <Sparkles className="h-4 w-4" />
-                <AlertTitle>Buscando sugestões...</AlertTitle>
-                <AlertDescription>
-                    <Skeleton className="h-4 w-3/4 mt-2" />
-                    <Skeleton className="h-4 w-1/2 mt-2" />
-                </AlertDescription>
-            </Alert>
-        )}
+            {suggestionState.suggestions && (
+                 <Alert variant="default" className="border-primary/20 bg-primary/10">
+                    <Lightbulb className="h-4 w-4 text-primary" />
+                    <AlertTitle className="text-primary">Sugestões da IA</AlertTitle>
+                    <AlertDescription>
+                        <p className="mb-2">Aqui estão alguns critérios sugeridos. Você pode usá-los ou modificá-los como desejar.</p>
+                        <ul className="list-disc pl-5 space-y-1 text-foreground/80">
+                            {suggestionState.suggestions.map((s: Suggestion) => (
+                                <li key={s.name}><strong>{s.name} (Peso: {s.weight}%)</strong>: {s.rationale.replace(/(\*\*|__)(.*?)\1/g, '$2')}</li>
+                            ))}
+                        </ul>
+                    </AlertDescription>
+                </Alert>
+            )}
 
-        {suggestionState.suggestions && (
-             <Alert variant="default" className="border-primary/20 bg-primary/10">
-                <Lightbulb className="h-4 w-4 text-primary" />
-                <AlertTitle className="text-primary">Sugestões da IA</AlertTitle>
-                <AlertDescription>
-                    <p className="mb-2">Aqui estão alguns critérios sugeridos. Você pode usá-los ou modificá-los como desejar.</p>
-                    <ul className="list-disc pl-5 space-y-1 text-foreground/80">
-                        {suggestionState.suggestions.map((s: Suggestion) => (
-                            <li key={s.name}><strong>{s.name} (Peso: {s.weight}%)</strong>: {s.rationale.replace(/(\*\*|__)(.*?)\1/g, '$2')}</li>
-                        ))}
-                    </ul>
-                </AlertDescription>
-            </Alert>
-        )}
-
-        <Card>
-            <CardHeader>
-                <CardTitle>2. Critérios e Pesos</CardTitle>
-                <CardDescription>Liste os critérios importantes para sua decisão e atribua um peso a cada um. A soma total dos pesos deve ser 100%.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-                {criteriaFields.map((field, index) => (
-                <div key={field.id} className="flex gap-4 items-start p-3 border rounded-md relative">
-                    <FormField control={form.control} name={`criteria.${index}.name`} render={({ field }) => (
-                        <FormItem className="flex-1">
-                            <FormLabel>Critério {index + 1}</FormLabel>
-                            <FormControl><Input placeholder="Ex: Custo" {...field} /></FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )} />
-                    <FormField control={form.control} name={`criteria.${index}.weight`} render={({ field }) => (
-                        <FormItem className="w-24">
-                            <FormLabel>Peso (%)</FormLabel>
-                            <FormControl><Input type="number" placeholder="25" {...field} /></FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )} />
-                     <Button type="button" variant="ghost" size="icon" onClick={() => removeCriterion(index)} disabled={criteriaFields.length <= 1} className="mt-8">
-                        <Trash2 className="h-4 w-4" />
-                    </Button>
-                </div>
-                ))}
-                <div className='flex justify-between items-center'>
-                    <Button type="button" variant="outline" size="sm" onClick={() => appendCriterion({ name: '', weight: 0 })}>
-                        <Plus className="mr-2 h-4 w-4" /> Adicionar Critério
-                    </Button>
-                    <div className={`text-sm font-medium ${totalWeight !== 100 ? 'text-destructive' : 'text-primary'}`}>
-                        Peso Total: {totalWeight}%
-                    </div>
-                </div>
-                 {form.formState.errors.criteria && <p className="text-sm font-medium text-destructive">{form.formState.errors.criteria.message}</p>}
-            </CardContent>
-        </Card>
-
-        <Card>
-            <CardHeader>
-                <CardTitle>3. Opções e Pontuações</CardTitle>
-                <CardDescription>Liste as opções que você está considerando. Em seguida, para cada opção, dê uma nota de 0 a 10 para cada um dos critérios que você definiu.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-                {optionFields.map((optionField, optionIndex) => (
-                    <div key={optionField.id} className="p-4 border rounded-md space-y-3">
-                         <div className="flex gap-4 items-center">
-                            <FormField control={form.control} name={`options.${optionIndex}.name`} render={({ field }) => (
-                                <FormItem className="flex-1">
-                                <FormLabel>Opção {optionIndex + 1}</FormLabel>
-                                <FormControl><Input placeholder="Ex: Universidade A" {...field} /></FormControl>
+            <Card>
+                <CardHeader>
+                    <CardTitle>2. Critérios e Pesos</CardTitle>
+                    <CardDescription>Liste os critérios importantes para sua decisão e atribua um peso a cada um. A soma total dos pesos deve ser 100%.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    {criteriaFields.map((field, index) => (
+                    <div key={field.id} className="flex gap-4 items-start p-3 border rounded-md relative">
+                        <FormField control={form.control} name={`criteria.${index}.name`} render={({ field }) => (
+                            <FormItem className="flex-1">
+                                <FormLabel>Critério {index + 1}</FormLabel>
+                                <FormControl><Input placeholder="Ex: Custo" {...field} /></FormControl>
                                 <FormMessage />
-                                </FormItem>
-                            )} />
-                            <Button type="button" variant="ghost" size="icon" onClick={() => removeOption(optionIndex)} disabled={optionFields.length <= 2}>
-                                <Trash2 className="h-4 w-4" />
-                            </Button>
-                        </div>
-                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 pt-2">
-                        {watchedCriteria.map((criterion, criterionIndex) => (
-                           criterion.name && <FormField
-                                key={`${optionField.id}-${criterionIndex}`}
-                                control={form.control}
-                                name={`options.${optionIndex}.scores.${criterion.name}`}
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel className="text-sm">{criterion.name}</FormLabel>
-                                        <FormControl><Input type="number" min="0" max="10" placeholder="0-10" {...field} /></FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                        ))}
+                            </FormItem>
+                        )} />
+                        <FormField control={form.control} name={`criteria.${index}.weight`} render={({ field }) => (
+                            <FormItem className="w-24">
+                                <FormLabel>Peso (%)</FormLabel>
+                                <FormControl><Input type="number" placeholder="25" {...field} /></FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )} />
+                         <Button type="button" variant="ghost" size="icon" onClick={() => removeCriterion(index)} disabled={criteriaFields.length <= 1} className="mt-8">
+                            <Trash2 className="h-4 w-4" />
+                        </Button>
+                    </div>
+                    ))}
+                    <div className='flex justify-between items-center'>
+                        <Button type="button" variant="outline" size="sm" onClick={() => appendCriterion({ name: '', weight: 0 })}>
+                            <Plus className="mr-2 h-4 w-4" /> Adicionar Critério
+                        </Button>
+                        <div className={`text-sm font-medium ${totalWeight !== 100 ? 'text-destructive' : 'text-primary'}`}>
+                            Peso Total: {totalWeight}%
                         </div>
                     </div>
-                ))}
-                 <Button type="button" variant="outline" size="sm" onClick={() => appendOption({ name: '', scores: {} })}>
-                    <Plus className="mr-2 h-4 w-4" /> Adicionar Opção
-                </Button>
-            </CardContent>
-        </Card>
+                     {form.formState.errors.criteria && <p className="text-sm font-medium text-destructive">{form.formState.errors.criteria.root?.message}</p>}
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>3. Opções e Pontuações</CardTitle>
+                    <CardDescription>Liste as opções que você está considerando. Em seguida, para cada opção, dê uma nota de 0 a 10 para cada um dos critérios que você definiu.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    {optionFields.map((optionField, optionIndex) => (
+                        <div key={optionField.id} className="p-4 border rounded-md space-y-3">
+                             <div className="flex gap-4 items-center">
+                                <FormField control={form.control} name={`options.${optionIndex}.name`} render={({ field }) => (
+                                    <FormItem className="flex-1">
+                                    <FormLabel>Opção {optionIndex + 1}</FormLabel>
+                                    <FormControl><Input placeholder="Ex: Universidade A" {...field} /></FormControl>
+                                    <FormMessage />
+                                    </FormItem>
+                                )} />
+                                <Button type="button" variant="ghost" size="icon" onClick={() => removeOption(optionIndex)} disabled={optionFields.length <= 2}>
+                                    <Trash2 className="h-4 w-4" />
+                                </Button>
+                            </div>
+                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 pt-2">
+                            {watchedCriteria.map((criterion, criterionIndex) => (
+                               criterion.name && <FormField
+                                    key={`${optionField.id}-${criterion.name}`}
+                                    control={form.control}
+                                    name={`options.${optionIndex}.scores.${criterion.name}`}
+                                    defaultValue={0}
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel className="text-sm">{criterion.name}</FormLabel>
+                                            <FormControl><Input type="number" min="0" max="10" placeholder="0-10" {...field} /></FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            ))}
+                            </div>
+                        </div>
+                    ))}
+                     <Button type="button" variant="outline" size="sm" onClick={() => appendOption({ name: '', scores: {} })}>
+                        <Plus className="mr-2 h-4 w-4" /> Adicionar Opção
+                    </Button>
+                </CardContent>
+            </Card>
+        </form>
       </Form>
       
-       {finalScores.length > 0 && finalScores.some(s => s.name) && (
+       {finalScores.length > 0 && (
         <Card>
             <CardHeader>
                 <CardTitle>4. Resultados e Decisão</CardTitle>

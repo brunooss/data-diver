@@ -45,8 +45,20 @@ const financialSpendingSchema = z.object({
   }),
 });
 
+const criterionSchema = z.object({
+  name: z.string(),
+  weight: z.coerce.number(),
+});
+
+const optionSchema = z.object({
+  name: z.string(),
+  scores: z.record(z.string(), z.coerce.number()),
+});
+
 const weightedAnalysisSchema = z.object({
-  context: z.string().min(10, 'Por favor, forneça mais contexto para a decisão.'),
+  context: z.string().optional(),
+  existingCriteria: z.array(criterionSchema).optional(),
+  existingOptions: z.array(optionSchema).optional(),
 });
 
 // --- Tipos de Decisão para Salvar ---
@@ -65,7 +77,7 @@ const saveFinancialSpendingDecisionSchema = z.object({
 });
 
 const saveWeightedAnalysisDecisionSchema = z.object({
-    context: z.string().min(1),
+    context: z.string().optional(),
     criteria: z.array(z.object({ name: z.string(), weight: z.number() })),
     options: z.array(z.object({ name: z.string(), scores: z.record(z.string(), z.number()) })),
     decision: z.string().min(1),
@@ -156,7 +168,8 @@ export async function handleFinancialTotals(data: unknown) {
 export async function handleWeightedSuggestions(data: unknown) {
   const validation = weightedAnalysisSchema.safeParse(data);
   if (!validation.success) {
-    return { error: validation.error.flatten().fieldErrors.context?.[0] };
+    console.log(validation.error.flatten());
+    return { error: 'Os dados fornecidos para sugestão são inválidos.' };
   }
   try {
     const result = await getWeightedDecisionSuggestions(validation.data as WeightedDecisionSuggestionsInput);
@@ -232,7 +245,7 @@ export async function handleSaveWeightedAnalysisDecision(data: unknown) {
     }
     const decisionData: Omit<WeightedAnalysisDecision, 'id' | 'date'> = {
         type: 'Weighted Analysis',
-        context: validation.data.context,
+        context: validation.data.context || 'Análise Ponderada',
         criteria: validation.data.criteria,
         options: validation.data.options,
         decision: validation.data.decision,
@@ -294,7 +307,11 @@ export async function getFinancialSpendingAdviceAction(prevState: any, formData:
 }
 
 export async function getWeightedSuggestionsAction(prevState: any, formData: FormData) {
-  const rawData = { context: formData.get('context') };
+  const rawData = {
+    context: formData.get('context'),
+    existingCriteria: JSON.parse(formData.get('existingCriteria') as string),
+    existingOptions: JSON.parse(formData.get('existingOptions') as string),
+  };
   return handleWeightedSuggestions(rawData);
 }
 
