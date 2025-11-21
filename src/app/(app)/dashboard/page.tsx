@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { HelpCircle, ListChecks, Banknote, Landmark, History, ArrowRight } from 'lucide-react';
+import { HelpCircle, ListChecks, Banknote, Landmark, History, ArrowRight, Scale } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 
@@ -16,6 +16,12 @@ const tools = [
     label: 'Múltipla Escolha',
     description: 'Para quando sua decisão tem mais de duas opções.',
     icon: ListChecks,
+  },
+  {
+    href: '/weighted-analysis',
+    label: 'Análise Ponderada',
+    description: 'Tome decisões complexas com base em critérios e pesos.',
+    icon: Scale,
   },
   {
     href: '/financial-analysis',

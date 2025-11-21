@@ -20,8 +20,97 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Trash2 } from 'lucide-react';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
 
 function DecisionCard({ decision, onDelete }: { decision: Decision; onDelete: (id: string) => void; }) {
+  const renderDecisionDetails = () => {
+    switch (decision.type) {
+      case 'Yes/No':
+        return <p>Sua escolha: <span className="font-semibold">{decision.decision}</span></p>;
+      case 'Multiple Choice':
+        return <p>Sua escolha: <span className="font-semibold">{decision.decision}</span></p>;
+      case 'Financial Spending':
+        return <p>Sua escolha: <span className="font-semibold">{decision.decision}</span></p>;
+      case 'Financial Analysis':
+        return (
+          <div className='text-sm text-muted-foreground'>
+            <p>Custo Fixo: R$ {decision.fixedCost.toLocaleString('pt-BR')}</p>
+            <p>Custo Variável: R$ {decision.variableCost.toLocaleString('pt-BR')}</p>
+          </div>
+        );
+      case 'Weighted Analysis':
+        const finalScores: { name: string; score: number }[] = decision.options.map(opt => {
+            const totalScore = decision.criteria.reduce((acc, crit) => {
+              const score = opt.scores[crit.name] || 0;
+              const weight = crit.weight / 100;
+              return acc + (score * weight);
+            }, 0);
+            return { name: opt.name, score: totalScore };
+        });
+
+        return (
+            <div>
+                <p className="mb-2">Sua escolha: <span className="font-semibold">{decision.decision}</span></p>
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>Opção</TableHead>
+                            <TableHead className="text-right">Pontuação Final</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {finalScores.map(item => (
+                            <TableRow key={item.name}>
+                                <TableCell className="font-medium">{item.name}</TableCell>
+                                <TableCell className="text-right">{item.score.toFixed(2)}</TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </div>
+        );
+      default:
+        return null;
+    }
+  }
+  
+  const renderFooter = () => {
+    if ((decision.type === 'Multiple Choice' || decision.type === 'Financial Spending') && decision.options.length > 0) {
+      return (
+        <div className="text-sm">
+          <p className="font-medium">Opções consideradas:</p>
+          <ul className="list-disc list-inside text-muted-foreground">
+            {decision.options.map((opt, i) => <li key={i}>{opt}</li>)}
+          </ul>
+        </div>
+      );
+    }
+     if (decision.type === 'Weighted Analysis') {
+      return (
+        <div className="text-sm w-full">
+            <p className="font-medium mb-2">Critérios Utilizados:</p>
+            <Table>
+                <TableHeader>
+                    <TableRow>
+                        <TableHead>Critério</TableHead>
+                        <TableHead className="text-right">Peso</TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    {decision.criteria.map(crit => (
+                        <TableRow key={crit.name}>
+                            <TableCell>{crit.name}</TableCell>
+                            <TableCell className="text-right">{crit.weight}%</TableCell>
+                        </TableRow>
+                    ))}
+                </TableBody>
+            </Table>
+        </div>
+      );
+    }
+    return null;
+  }
+
   return (
     <Card>
       <CardHeader>
@@ -59,24 +148,11 @@ function DecisionCard({ decision, onDelete }: { decision: Decision; onDelete: (i
         </div>
       </CardHeader>
       <CardContent>
-        {decision.type === 'Yes/No' && <p>Sua escolha: <span className="font-semibold">{decision.decision}</span></p>}
-        {decision.type === 'Multiple Choice' && <p>Sua escolha: <span className="font-semibold">{decision.decision}</span></p>}
-        {decision.type === 'Financial Spending' && <p>Sua escolha: <span className="font-semibold">{decision.decision}</span></p>}
-        {decision.type === 'Financial Analysis' && (
-            <div className='text-sm text-muted-foreground'>
-                <p>Custo Fixo: R$ {decision.fixedCost.toLocaleString('pt-BR')}</p>
-                <p>Custo Variável: R$ {decision.variableCost.toLocaleString('pt-BR')}</p>
-            </div>
-        )}
+        {renderDecisionDetails()}
       </CardContent>
-      {(decision.type === 'Multiple Choice' || decision.type === 'Financial Spending') && decision.options.length > 0 && (
+      {((decision.type === 'Multiple Choice' || decision.type === 'Financial Spending' || decision.type === 'Weighted Analysis') && decision.options.length > 0) && (
         <CardFooter>
-            <div className="text-sm">
-                <p className="font-medium">Opções consideradas:</p>
-                <ul className="list-disc list-inside text-muted-foreground">
-                    {decision.options.map((opt, i) => <li key={i}>{opt}</li>)}
-                </ul>
-            </div>
+            {renderFooter()}
         </CardFooter>
       )}
     </Card>

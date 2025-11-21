@@ -2,13 +2,14 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, HelpCircle, ListChecks, Banknote, Landmark, History } from 'lucide-react';
+import { LayoutDashboard, HelpCircle, ListChecks, Banknote, Landmark, History, Scale } from 'lucide-react';
 import { SidebarMenu, SidebarMenuItem, SidebarMenuButton } from '@/components/ui/sidebar';
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/yes-no', label: 'Decisão Sim/Não', icon: HelpCircle },
   { href: '/multiple-choice', label: 'Múltipla Escolha', icon: ListChecks },
+  { href: '/weighted-analysis', label: 'Análise Ponderada', icon: Scale },
   { href: '/financial-analysis', label: 'Análise Financeira', icon: Banknote },
   { href: '/financial-spending', label: 'Gasto Financeiro', icon: Landmark },
   { href: '/history', label: 'Histórico de Decisões', icon: History },

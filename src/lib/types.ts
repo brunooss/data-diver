@@ -1,4 +1,4 @@
-export type DecisionType = 'Yes/No' | 'Multiple Choice' | 'Financial Analysis' | 'Financial Spending';
+export type DecisionType = 'Yes/No' | 'Multiple Choice' | 'Financial Analysis' | 'Financial Spending' | 'Weighted Analysis';
 
 export interface BaseDecision {
   id: string;
@@ -30,4 +30,11 @@ export interface FinancialAnalysisDecision extends BaseDecision {
   variableCost: number;
 }
 
-export type Decision = YesNoDecision | MultipleChoiceDecision | FinancialSpendingDecision | FinancialAnalysisDecision;
+export interface WeightedAnalysisDecision extends BaseDecision {
+    type: 'Weighted Analysis';
+    criteria: { name: string; weight: number }[];
+    options: { name: string; scores: Record<string, number> }[];
+    decision: string;
+}
+
+export type Decision = YesNoDecision | MultipleChoiceDecision | FinancialSpendingDecision | FinancialAnalysisDecision | WeightedAnalysisDecision;

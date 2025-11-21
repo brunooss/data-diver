@@ -6,7 +6,8 @@ import { getMultipleChoiceDecisionAdvice, type MultipleChoiceDecisionAdviceInput
 import { suggestFinancialWeights, type FinancialWeightInput } from '@/ai/flows/financial-decision-weight-suggestion';
 import { getFinancialSpendingAdvice, type FinancialSpendingAdviceInput } from '@/ai/flows/financial-spending-advice';
 import { calculateConsortiumTotal, calculateFinancingTotal } from '@/lib/financial-calculations';
-import type { YesNoDecision, MultipleChoiceDecision, FinancialSpendingDecision, FinancialAnalysisDecision } from '@/lib/types';
+import type { YesNoDecision, MultipleChoiceDecision, FinancialSpendingDecision, FinancialAnalysisDecision, WeightedAnalysisDecision } from '@/lib/types';
+import { getWeightedDecisionSuggestions, type WeightedDecisionSuggestionsInput } from '@/ai/flows/weighted-decision-advice';
 
 // --- Schemas ---
 const yesNoSchema = z.object({
@@ -44,6 +45,9 @@ const financialSpendingSchema = z.object({
   }),
 });
 
+const weightedAnalysisSchema = z.object({
+  context: z.string().min(10, 'Por favor, forneça mais contexto para a decisão.'),
+});
 
 // --- Tipos de Decisão para Salvar ---
 const saveYesNoDecisionSchema = yesNoSchema.extend({
@@ -57,6 +61,13 @@ const saveMultipleChoiceDecisionSchema = multipleChoiceSchema.extend({
 const saveFinancialSpendingDecisionSchema = z.object({
     context: z.string().min(1),
     options: z.array(z.string()),
+    decision: z.string().min(1),
+});
+
+const saveWeightedAnalysisDecisionSchema = z.object({
+    context: z.string().min(1),
+    criteria: z.array(z.object({ name: z.string(), weight: z.number() })),
+    options: z.array(z.object({ name: z.string(), scores: z.record(z.string(), z.number()) })),
     decision: z.string().min(1),
 });
 
@@ -142,6 +153,20 @@ export async function handleFinancialTotals(data: unknown) {
     }
 }
 
+export async function handleWeightedSuggestions(data: unknown) {
+  const validation = weightedAnalysisSchema.safeParse(data);
+  if (!validation.success) {
+    return { error: validation.error.flatten().fieldErrors.context?.[0] };
+  }
+  try {
+    const result = await getWeightedDecisionSuggestions(validation.data as WeightedDecisionSuggestionsInput);
+    return { suggestions: result.suggestions };
+  } catch (e) {
+    console.error(e);
+    return { error: 'Falha ao obter sugestões da IA. Por favor, tente novamente.' };
+  }
+}
+
 // --- SAVE DECISION ---
 
 export async function handleSaveYesNoDecision(data: unknown) {
@@ -193,6 +218,22 @@ export async function handleSaveFinancialSpendingDecision(data: unknown) {
     const decisionData: Omit<FinancialSpendingDecision, 'id' | 'date'> = {
         type: 'Financial Spending',
         context: validation.data.context,
+        options: validation.data.options,
+        decision: validation.data.decision,
+    };
+    return { decision: decisionData };
+}
+
+export async function handleSaveWeightedAnalysisDecision(data: unknown) {
+    const validation = saveWeightedAnalysisDecisionSchema.safeParse(data);
+    if (!validation.success) {
+        console.error(validation.error.flatten())
+        return { error: 'Dados inválidos para salvar a decisão.' };
+    }
+    const decisionData: Omit<WeightedAnalysisDecision, 'id' | 'date'> = {
+        type: 'Weighted Analysis',
+        context: validation.data.context,
+        criteria: validation.data.criteria,
         options: validation.data.options,
         decision: validation.data.decision,
     };
@@ -252,23 +293,32 @@ export async function getFinancialSpendingAdviceAction(prevState: any, formData:
   return handleFinancialSpendingAdvice(rawData);
 }
 
+export async function getWeightedSuggestionsAction(prevState: any, formData: FormData) {
+  const rawData = { context: formData.get('context') };
+  return handleWeightedSuggestions(rawData);
+}
+
 
 export async function getFinancialTotalsAction(data: unknown) {
     return handleFinancialTotals(data);
 }
 
 export async function saveYesNoDecisionAction(data: unknown) {
-    return handleSaveYesNoDecision(data);
+    return await handleSaveYesNoDecision(data);
 }
 
 export async function saveMultipleChoiceDecisionAction(data: unknown) {
-    return handleSaveMultipleChoiceDecision(data);
+    return await handleSaveMultipleChoiceDecision(data);
 }
 
 export async function saveFinancialAnalysisAction(data: unknown) {
-    return handleSaveFinancialAnalysisDecision(data);
+    return await handleSaveFinancialAnalysisDecision(data);
 }
 
 export async function saveFinancialSpendingAction(data: unknown) {
-    return handleSaveFinancialSpendingDecision(data);
+    return await handleSaveFinancialSpendingDecision(data);
+}
+
+export async function saveWeightedAnalysisAction(data: unknown) {
+    return await handleSaveWeightedAnalysisDecision(data);
 }
