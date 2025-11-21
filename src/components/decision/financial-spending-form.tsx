@@ -143,81 +143,81 @@ export function FinancialSpendingForm() {
         </Card>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card>
+            <Card className="flex flex-col">
                 <CardHeader>
                     <CardTitle>Opção 1: Financiamento</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                    <FormField control={form.control} name="financing.totalValue" render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Valor Total do Bem</FormLabel>
-                            <FormControl><Input type="number" {...field} /></FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )} />
-                    <FormField control={form.control} name="financing.downPayment" render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Valor da Entrada</FormLabel>
-                            <FormControl><Input type="number" {...field} /></FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )} />
-                    <FormField control={form.control} name="financing.interestRate" render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Taxa de Juros (% a.m.)</FormLabel>
-                            <FormControl><Input type="number" step="0.1" {...field} /></FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )} />
-                    <FormField control={form.control} name="financing.installments" render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Número de Parcelas</FormLabel>
-                            <FormControl><Input type="number" {...field} /></FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )} />
-                </CardContent>
-                <CardFooter>
-                    <div className="w-full p-4 bg-muted rounded-lg">
+                <CardContent className="flex-grow flex flex-col justify-between">
+                    <div className="space-y-4">
+                        <FormField control={form.control} name="financing.totalValue" render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Valor Total do Bem</FormLabel>
+                                <FormControl><Input type="number" {...field} /></FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )} />
+                        <FormField control={form.control} name="financing.downPayment" render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Valor da Entrada</FormLabel>
+                                <FormControl><Input type="number" {...field} /></FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )} />
+                        <FormField control={form.control} name="financing.interestRate" render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Taxa de Juros (% a.m.)</FormLabel>
+                                <FormControl><Input type="number" step="0.1" {...field} /></FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )} />
+                        <FormField control={form.control} name="financing.installments" render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Número de Parcelas</FormLabel>
+                                <FormControl><Input type="number" {...field} /></FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )} />
+                    </div>
+                    <div className="w-full p-4 mt-4 bg-muted rounded-lg">
                         <h4 className="font-semibold text-lg">Custo Total Estimado:</h4>
                         <p className="text-2xl font-bold text-primary">{totals.financingTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
                     </div>
-                </CardFooter>
+                </CardContent>
             </Card>
 
-            <Card>
+            <Card className="flex flex-col">
                 <CardHeader>
                     <CardTitle>Opção 2: Consórcio</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                    <FormField control={form.control} name="consortium.totalValue" render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Valor Total da Carta</FormLabel>
-                            <FormControl><Input type="number" {...field} /></FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )} />
-                    <FormField control={form.control} name="consortium.adminFee" render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Taxa de Administração (%)</FormLabel>
-                            <FormControl><Input type="number" step="0.1" {...field} /></FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )} />
-                    <FormField control={form.control} name="consortium.installments" render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Número de Parcelas</FormLabel>
-                            <FormControl><Input type="number" {...field} /></FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )} />
-                </CardContent>
-                <CardFooter>
-                    <div className="w-full p-4 bg-muted rounded-lg">
+                <CardContent className="flex-grow flex flex-col justify-between">
+                   <div className="space-y-4">
+                        <FormField control={form.control} name="consortium.totalValue" render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Valor Total da Carta</FormLabel>
+                                <FormControl><Input type="number" {...field} /></FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )} />
+                        <FormField control={form.control} name="consortium.adminFee" render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Taxa de Administração (%)</FormLabel>
+                                <FormControl><Input type="number" step="0.1" {...field} /></FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )} />
+                        <FormField control={form.control} name="consortium.installments" render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Número de Parcelas</FormLabel>
+                                <FormControl><Input type="number" {...field} /></FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )} />
+                   </div>
+                    <div className="w-full p-4 mt-4 bg-muted rounded-lg">
                         <h4 className="font-semibold text-lg">Custo Total Estimado:</h4>
                         <p className="text-2xl font-bold text-primary">{totals.consortiumTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
                     </div>
-                </CardFooter>
+                </CardContent>
             </Card>
         </div>
 
