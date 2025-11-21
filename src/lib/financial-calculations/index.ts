@@ -27,14 +27,14 @@ export type Option = {
 };
 
 export function calculateFinancingMonthlyPayment({ totalValue, downPayment, interestRate, installments }: FinancingDetails): number {
+    if (installments === 0) return 0;
     if (interestRate === 0) {
         return (totalValue - downPayment) / installments;
     }
     const principal = totalValue - downPayment;
     const monthlyRate = interestRate / 100;
     if (principal <= 0) return 0;
-    if (installments === 0) return principal;
-
+   
     // Formula de pagamento mensal (Tabela Price)
     // M = P * [r(1+r)^n] / [(1+r)^n - 1]
     const monthlyPayment = principal * (monthlyRate * Math.pow(1 + monthlyRate, installments)) / (Math.pow(1 + monthlyRate, installments) - 1);
@@ -45,9 +45,12 @@ export function calculateFinancingTotal({ totalValue, downPayment, interestRate,
     if (downPayment >= totalValue) {
         return totalValue;
     }
+     if (installments === 0) {
+        return downPayment;
+    }
     const monthlyPayment = calculateFinancingMonthlyPayment({ totalValue, downPayment, interestRate, installments });
     const totalPaid = downPayment + (monthlyPayment * installments);
-    return isNaN(totalPaid) ? 0 : totalPaid;
+    return isNaN(totalPaid) ? totalValue : totalPaid;
 }
 
 export function calculateConsortiumTotal({ totalValue, adminFee }: ConsortiumDetails): number {
@@ -57,7 +60,7 @@ export function calculateConsortiumTotal({ totalValue, adminFee }: ConsortiumDet
 
 export function calculateConsortiumMonthlyPayment({ totalValue, adminFee, installments }: ConsortiumDetails): number {
     if (installments === 0) return 0;
-    const totalCost = calculateConsortiumTotal({ totalValue, adminFee, installments });
+    const totalCost = calculateConsortiumTotal({ totalValue, adminFee });
     const monthlyPayment = totalCost / installments;
     return isNaN(monthlyPayment) ? 0 : monthlyPayment;
 }

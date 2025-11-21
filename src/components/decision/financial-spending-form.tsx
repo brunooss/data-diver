@@ -85,7 +85,7 @@ export function FinancialSpendingForm() {
         const consortiumTotal = calculateConsortiumTotal(validation.data.consortium);
         setTotals({ financingTotal, consortiumTotal });
     }
-  }, [watchedData]);
+  }, [watchedData, formSchema]);
 
   
   useEffect(() => {
