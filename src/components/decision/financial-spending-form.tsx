@@ -1,6 +1,7 @@
 'use client';
 
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
+import { useFormState, useFormStatus } from 'react-dom';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useDecisionHistory } from '@/hooks/use-decision-history';
@@ -17,6 +18,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useEffect, useMemo } from 'react';
+import { getFinancialSpendingAdviceAction } from '@/app/actions';
+import { AiAdviceCard } from './ai-advice-card';
+import { Loader2 } from 'lucide-react';
 
 const formSchema = z.object({
   context: z.string().min(10, 'Por favor, forneça mais contexto para a decisão.'),
@@ -35,10 +40,21 @@ const formSchema = z.object({
 
 type FormData = z.infer<typeof formSchema>;
 
+function SubmitButton() {
+  const { pending } = useFormStatus();
+  return (
+    <Button type="submit" disabled={pending} className="w-full">
+      {pending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+      Me ajude a escolher
+    </Button>
+  );
+}
 
 export function FinancialSpendingForm() {
+  const [state, formAction] = useFormState(getFinancialSpendingAdviceAction, { advice: null, error: null });
   const { addDecision } = useDecisionHistory();
   const { toast } = useToast();
+  const { pending } = useFormStatus();
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -57,6 +73,39 @@ export function FinancialSpendingForm() {
       }
     },
   });
+
+  const financingData = useWatch({ control: form.control, name: 'financing' });
+  const consortiumData = useWatch({ control: form.control, name: 'consortium' });
+
+  const financingTotal = useMemo(() => {
+    const { totalValue, downPayment, interestRate, installments } = financingData;
+    if (interestRate === 0) {
+      return totalValue;
+    }
+    const principal = totalValue - downPayment;
+    const monthlyRate = interestRate / 100;
+    if (principal <= 0) return downPayment;
+    
+    // M = P * [r(1+r)^n] / [(1+r)^n - 1]
+    const monthlyPayment = principal * (monthlyRate * Math.pow(1 + monthlyRate, installments)) / (Math.pow(1 + monthlyRate, installments) - 1);
+    
+    return downPayment + (monthlyPayment * installments);
+  }, [financingData]);
+
+  const consortiumTotal = useMemo(() => {
+    const { totalValue, adminFee } = consortiumData;
+    return totalValue * (1 + adminFee / 100);
+  }, [consortiumData]);
+  
+  useEffect(() => {
+    if (state.error) {
+      toast({
+        variant: 'destructive',
+        title: 'Erro',
+        description: state.error,
+      });
+    }
+  }, [state.error, toast]);
   
   const handleDecision = (decision: string) => {
     const { context } = form.getValues();
@@ -72,14 +121,23 @@ export function FinancialSpendingForm() {
       description: `Você escolheu "${decision}" para: ${context.substring(0, 30)}...`,
     });
   };
-  
-  const onSubmit = () => {
-    // A lógica de decisão está no handleDecision
+
+  const customAction = (formData: FormData) => {
+    const newFormData = new FormData();
+    newFormData.append('context', formData.context);
+    Object.keys(formData.financing).forEach(key => {
+        newFormData.append(`financing.${key}`, String(formData.financing[key as keyof typeof formData.financing]));
+    });
+    Object.keys(formData.consortium).forEach(key => {
+        newFormData.append(`consortium.${key}`, String(formData.consortium[key as keyof typeof formData.consortium]));
+    });
+    formAction(newFormData);
   };
+  
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(customAction)} className="space-y-6">
         <Card>
           <CardHeader>
             <CardTitle>Sua Decisão</CardTitle>
@@ -135,6 +193,10 @@ export function FinancialSpendingForm() {
                         </FormItem>
                     )} />
                 </div>
+                <div className="mt-4 p-4 bg-muted rounded-lg">
+                    <h4 className="font-semibold text-lg">Custo Total Estimado:</h4>
+                    <p className="text-2xl font-bold text-primary">{financingTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
+                </div>
               </TabsContent>
               <TabsContent value="consortium">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
@@ -160,16 +222,21 @@ export function FinancialSpendingForm() {
                         </FormItem>
                     )} />
                 </div>
+                <div className="mt-4 p-4 bg-muted rounded-lg">
+                    <h4 className="font-semibold text-lg">Custo Total Estimado:</h4>
+                    <p className="text-2xl font-bold text-primary">{consortiumTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
+                </div>
               </TabsContent>
             </Tabs>
 
           </CardContent>
-          <CardFooter className="flex justify-end">
+          <CardFooter className="flex flex-col gap-4">
+            <SubmitButton />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="default" disabled={!form.formState.isValid}>Tomar uma Decisão</Button>
+                <Button variant="outline" disabled={!form.formState.isValid} className="w-full">Tomar uma Decisão</Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent>
+              <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width]">
                 <DropdownMenuItem onSelect={() => handleDecision('Financiamento')}>
                     Financiamento
                 </DropdownMenuItem>
@@ -180,6 +247,8 @@ export function FinancialSpendingForm() {
             </DropdownMenu>
           </CardFooter>
         </Card>
+        
+        <AiAdviceCard advice={state.advice} isLoading={pending} />
       </form>
     </Form>
   );

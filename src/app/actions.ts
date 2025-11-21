@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { getYesNoDecisionAdvice } from '@/ai/flows/yes-no-decision-advice';
 import { getMultipleChoiceDecisionAdvice } from '@/ai/flows/multiple-choice-decision-advice';
 import { suggestFinancialWeights } from '@/ai/flows/financial-decision-weight-suggestion';
+import { getFinancialSpendingAdvice } from '@/ai/flows/financial-spending-advice';
 
 const yesNoSchema = z.object({
   context: z.string().min(10, 'Por favor, forneça mais contexto para a decisão.'),
@@ -69,5 +70,52 @@ export async function getFinancialWeightsAction(prevState: any, formData: FormDa
   } catch (e) {
     console.error(e);
     return { error: 'Falha ao obter sugestões da IA. Por favor, tente novamente.' };
+  }
+}
+
+const financialSpendingSchema = z.object({
+  context: z.string(),
+  financing: z.object({
+    totalValue: z.number(),
+    downPayment: z.number(),
+    interestRate: z.number(),
+    installments: z.number(),
+  }),
+  consortium: z.object({
+    totalValue: z.number(),
+    adminFee: z.number(),
+    installments: z.number(),
+  }),
+});
+
+export async function getFinancialSpendingAdviceAction(prevState: any, formData: FormData) {
+  const rawData = {
+    context: formData.get('context'),
+    financing: {
+      totalValue: Number(formData.get('financing.totalValue')),
+      downPayment: Number(formData.get('financing.downPayment')),
+      interestRate: Number(formData.get('financing.interestRate')),
+      installments: Number(formData.get('financing.installments')),
+    },
+    consortium: {
+      totalValue: Number(formData.get('consortium.totalValue')),
+      adminFee: Number(formData.get('consortium.adminFee')),
+      installments: Number(formData.get('consortium.installments')),
+    },
+  };
+
+  const validation = financialSpendingSchema.safeParse(rawData);
+
+  if (!validation.success) {
+    console.error(validation.error.flatten());
+    return { error: 'Dados inválidos. Por favor, verifique os campos.' };
+  }
+
+  try {
+    const result = await getFinancialSpendingAdvice(validation.data);
+    return { advice: result.advice };
+  } catch (e) {
+    console.error(e);
+    return { error: 'Falha ao obter conselho da IA. Por favor, tente novamente.' };
   }
 }
