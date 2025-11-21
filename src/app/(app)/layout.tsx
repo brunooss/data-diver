@@ -20,20 +20,22 @@ export default function AppLayout({
       <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6 z-50">
         <Sheet>
           <SheetTrigger asChild>
-            <Button size="icon" variant="outline">
+            <Button size="icon" variant="outline" className="md:hidden">
               <PanelLeft className="h-5 w-5" />
               <span className="sr-only">Abrir menu</span>
             </Button>
           </SheetTrigger>
           <SheetContent side="left" className="flex flex-col">
-            <Link href="/" className="mb-4">
+            <Link href="/dashboard" className="mb-4">
               <Logo />
             </Link>
             <MainNav />
           </SheetContent>
         </Sheet>
         <div className="w-full flex-1">
-          {/* Pode adicionar um título ou navegação de breadcrumb aqui se desejar */}
+           <Link href="/dashboard">
+              <Logo className="hidden md:flex" />
+            </Link>
         </div>
         <ThemeToggle />
       </header>

@@ -58,3 +58,5 @@ Para garantir a qualidade e a estabilidade do código, o projeto conta com uma s
    Utilizamos o [Codecov](https://about.codecov.io/) como uma ferramenta para monitorar a cobertura de testes do nosso código. Ele gera relatórios visuais que nos ajudam a entender quais partes do código estão sendo testadas e onde podemos melhorar.
 
    A cada novo `commit` ou `pull request` enviado para o repositório, o GitHub Actions executa automaticamente todos os testes e envia o relatório de cobertura para o Codecov. Isso garante que tenhamos uma visão sempre atualizada da qualidade dos nossos testes.
+
+   
