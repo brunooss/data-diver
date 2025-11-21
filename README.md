@@ -33,16 +33,28 @@ Este projeto foi construído utilizando um stack de tecnologias moderno e robust
 
 ## Como Executar os Testes
 
-Para garantir a qualidade e a estabilidade do código, o projeto conta com uma suíte de testes unitários e de integração. Para executá-los localmente e obter o relatório de cobertura, siga os passos:
+Para garantir a qualidade e a estabilidade do código, o projeto conta com uma suíte de testes unitários. Para executá-los localmente, siga os passos:
 
 1.  **Instale as dependências:**
     ```bash
     npm install
     ```
 
-2.  **Rode os testes com cobertura:**
-    Para executar todos os testes e ver o relatório de cobertura de código diretamente no terminal, use o comando:
+2.  **Rode os testes:**
+    Para executar todos os testes no terminal, use o comando:
     ```bash
     npm run test
     ```
-    Isso executará todos os arquivos de teste `*.test.ts` e, ao final, exibirá uma tabela com a porcentagem de cobertura para os arquivos configurados.
+    Este comando também gerará um relatório de cobertura de código.
+
+3.  **Rode os testes + Cobertura dos testes:**
+    É possível obter a cobertura do código pelo próprio _Vitest_ por meio do comando:
+
+    ```bash
+    npx vitest run --coverage
+    ```
+
+4. **Codecov (Integração Contínua):**
+   Utilizamos o [Codecov](https://about.codecov.io/) como uma ferramenta para monitorar a cobertura de testes do nosso código. Ele gera relatórios visuais que nos ajudam a entender quais partes do código estão sendo testadas e onde podemos melhorar.
+
+   A cada novo `commit` ou `pull request` enviado para o repositório, o GitHub Actions executa automaticamente todos os testes e envia o relatório de cobertura para o Codecov. Isso garante que tenhamos uma visão sempre atualizada da qualidade dos nossos testes.
