@@ -18,9 +18,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
+} from "@/components/ui/alert-dialog";
+import { Trash2 } from 'lucide-react';
 
-function DecisionCard({ decision }: { decision: Decision }) {
+function DecisionCard({ decision, onDelete }: { decision: Decision; onDelete: (id: string) => void; }) {
   return (
     <Card>
       <CardHeader>
@@ -31,7 +32,30 @@ function DecisionCard({ decision }: { decision: Decision }) {
                 {format(parseISO(decision.date), "d 'de' MMMM, yyyy 'às' h:mm a", { locale: ptBR })}
                 </CardDescription>
             </div>
-            <Badge variant="secondary">{decision.type}</Badge>
+            <div className="flex items-center gap-2">
+                <Badge variant="secondary">{decision.type}</Badge>
+                <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                        <Button variant="ghost" size="icon">
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                        <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Isso excluirá permanentemente esta decisão do seu histórico. Esta ação não pode ser desfeita.
+                        </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => onDelete(decision.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                            Excluir
+                        </AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
+            </div>
         </div>
       </CardHeader>
       <CardContent>
@@ -60,7 +84,7 @@ function DecisionCard({ decision }: { decision: Decision }) {
 }
 
 export function DecisionHistoryList() {
-  const { history, isLoaded, clearHistory } = useDecisionHistory();
+  const { history, isLoaded, clearHistory, deleteDecision } = useDecisionHistory();
 
   if (!isLoaded) {
     return (
@@ -113,7 +137,7 @@ export function DecisionHistoryList() {
       ) : (
         <div className="space-y-4">
           {history.map((decision) => (
-            <DecisionCard key={decision.id} decision={decision} />
+            <DecisionCard key={decision.id} decision={decision} onDelete={deleteDecision} />
           ))}
         </div>
       )}

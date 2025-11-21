@@ -48,5 +48,17 @@ export function useDecisionHistory() {
     }
   }, []);
 
-  return { history, addDecision, isLoaded, clearHistory };
+  const deleteDecision = useCallback((id: string) => {
+    setHistory(prevHistory => {
+      const updatedHistory = prevHistory.filter(d => d.id !== id);
+      try {
+        localStorage.setItem(HISTORY_KEY, JSON.stringify(updatedHistory));
+      } catch (error) {
+        console.error('Falha ao deletar a decisão do localStorage', error);
+      }
+      return updatedHistory;
+    });
+  }, []);
+
+  return { history, addDecision, isLoaded, clearHistory, deleteDecision };
 }
