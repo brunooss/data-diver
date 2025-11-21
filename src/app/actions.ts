@@ -144,7 +144,7 @@ export async function handleFinancialTotals(data: unknown) {
 
 // --- SAVE DECISION ---
 
-export function handleSaveYesNoDecision(data: unknown) {
+export async function handleSaveYesNoDecision(data: unknown) {
     const validation = saveYesNoDecisionSchema.safeParse(data);
     if (!validation.success) {
         return { error: validation.error.flatten().fieldErrors.context?.[0] || 'Dados inválidos.' };
@@ -157,7 +157,7 @@ export function handleSaveYesNoDecision(data: unknown) {
     return { decision: decisionData };
 }
 
-export function handleSaveMultipleChoiceDecision(data: unknown) {
+export async function handleSaveMultipleChoiceDecision(data: unknown) {
     const validation = saveMultipleChoiceDecisionSchema.safeParse(data);
     if (!validation.success) {
         return { error: 'Dados inválidos para salvar a decisão.' };
@@ -171,7 +171,7 @@ export function handleSaveMultipleChoiceDecision(data: unknown) {
     return { decision: decisionData };
 }
 
-export function handleSaveFinancialAnalysisDecision(data: unknown) {
+export async function handleSaveFinancialAnalysisDecision(data: unknown) {
     const validation = financialAnalysisSchema.safeParse(data);
     if (!validation.success) {
         return { error: 'Dados inválidos para salvar a análise.' };
@@ -185,7 +185,7 @@ export function handleSaveFinancialAnalysisDecision(data: unknown) {
     return { decision: decisionData };
 }
 
-export function handleSaveFinancialSpendingDecision(data: unknown) {
+export async function handleSaveFinancialSpendingDecision(data: unknown) {
     const validation = saveFinancialSpendingDecisionSchema.safeParse(data);
     if (!validation.success) {
         return { error: 'Dados inválidos para salvar a decisão.' };
