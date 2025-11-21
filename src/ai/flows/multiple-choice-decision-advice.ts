@@ -11,9 +11,14 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
+const OptionSchema = z.object({
+  value: z.string().describe('The option text.'),
+  description: z.string().describe('A description for the option.'),
+});
+
 const MultipleChoiceDecisionAdviceInputSchema = z.object({
   context: z.string().describe('The context of the decision.'),
-  options: z.array(z.string()).describe('The multiple options to select from.'),
+  options: z.array(OptionSchema).describe('The multiple options to select from.'),
 });
 
 export type MultipleChoiceDecisionAdviceInput = z.infer<
@@ -38,7 +43,18 @@ const prompt = ai.definePrompt({
   name: 'multipleChoiceDecisionAdvicePrompt',
   input: {schema: MultipleChoiceDecisionAdviceInputSchema},
   output: {schema: MultipleChoiceDecisionAdviceOutputSchema},
-  prompt: `Dado o seguinte contexto de decisão e opções, forneça conselhos gerados por IA para ajudar a escolher a melhor opção.\n\nContexto: {{{context}}}\nOpções: {{#each options}}- {{{this}}}\n{{/each}}\n\nConselho: `,
+  prompt: `Dado o seguinte contexto de decisão e opções, forneça conselhos gerados por IA para ajudar a escolher a melhor opção.
+
+Contexto: {{{context}}}
+
+Opções:
+{{#each options}}
+- {{{this.value}}}: {{{this.description}}}
+{{/each}}
+
+Analise os prós e contras de cada opção com base nas descrições fornecidas e dê uma recomendação clara.
+
+Conselho:`,
 });
 
 const multipleChoiceDecisionAdviceFlow = ai.defineFlow(

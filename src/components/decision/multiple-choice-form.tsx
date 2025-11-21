@@ -24,7 +24,10 @@ import {
 
 const formSchema = z.object({
   context: z.string().min(10, 'Por favor, forneça mais contexto para a decisão.'),
-  options: z.array(z.object({ value: z.string().min(1, 'A opção não pode estar vazia.') })).min(2, 'Por favor, forneça pelo menos duas opções.'),
+  options: z.array(z.object({ 
+    value: z.string().min(1, 'A opção não pode estar vazia.'),
+    description: z.string().optional(),
+  })).min(2, 'Por favor, forneça pelo menos duas opções.'),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -49,7 +52,7 @@ export function MultipleChoiceForm() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       context: '',
-      options: [{ value: '' }, { value: '' }],
+      options: [{ value: '', description: '' }, { value: '', description: '' }],
     },
   });
 
@@ -92,7 +95,8 @@ export function MultipleChoiceForm() {
     const newFormData = new FormData();
     newFormData.append('context', formData.context);
     formData.options.forEach(option => {
-      newFormData.append('options', option.value);
+      newFormData.append('options.value', option.value);
+      newFormData.append('options.description', option.description || '');
     });
     formAction(newFormData);
   };
@@ -121,36 +125,51 @@ export function MultipleChoiceForm() {
             />
             <div>
               <FormLabel>Opções</FormLabel>
-              <div className="space-y-2 mt-2">
+              <div className="space-y-4 mt-2">
                 {fields.map((field, index) => (
-                  <FormField
-                    key={field.id}
-                    control={form.control}
-                    name={`options.${index}.value`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <div className="flex items-center gap-2">
+                  <div key={field.id} className="p-4 border rounded-md space-y-2 relative">
+                     <FormField
+                      control={form.control}
+                      name={`options.${index}.value`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Opção {index + 1}</FormLabel>
                           <FormControl>
-                            <Input placeholder={`Opção ${index + 1}`} {...field} />
+                            <Input placeholder={`Nome da Opção ${index + 1}`} {...field} />
                           </FormControl>
-                          <Button
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name={`options.${index}.description`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Descrição</FormLabel>
+                          <FormControl>
+                            <Textarea placeholder="Detalhes sobre esta opção..." {...field} rows={2} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <div className="absolute top-2 right-2">
+                        <Button
                             type="button"
                             variant="ghost"
                             size="icon"
                             onClick={() => remove(index)}
                             disabled={fields.length <= 2}
-                          >
+                            >
                             <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                        </Button>
+                    </div>
+                  </div>
                 ))}
               </div>
             </div>
-            <Button type="button" variant="outline" size="sm" onClick={() => append({ value: '' })}>
+            <Button type="button" variant="outline" size="sm" onClick={() => append({ value: '', description: '' })}>
               <Plus className="mr-2 h-4 w-4" /> Adicionar Opção
             </Button>
           </CardContent>

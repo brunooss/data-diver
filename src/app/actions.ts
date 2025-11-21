@@ -26,13 +26,25 @@ export async function getYesNoAdviceAction(prevState: any, formData: FormData) {
   }
 }
 
+const multipleChoiceOptionSchema = z.object({
+  value: z.string().min(1, 'A opção não pode estar vazia.'),
+  description: z.string().optional(),
+});
+
 const multipleChoiceSchema = z.object({
   context: z.string().min(10, 'Por favor, forneça mais contexto para a decisão.'),
-  options: z.array(z.string().min(1, 'A opção não pode estar vazia.')).min(2, 'Por favor, forneça pelo menos duas opções.'),
+  options: z.array(multipleChoiceOptionSchema).min(2, 'Por favor, forneça pelo menos duas opções.'),
 });
 
 export async function getMultipleChoiceAdviceAction(prevState: any, formData: FormData) {
-  const options = formData.getAll('options').map(String).filter(opt => opt.trim() !== '');
+  const optionValues = formData.getAll('options.value').map(String);
+  const optionDescriptions = formData.getAll('options.description').map(String);
+  
+  const options = optionValues.map((value, index) => ({
+    value,
+    description: optionDescriptions[index] || '',
+  })).filter(opt => opt.value.trim() !== '');
+
   const rawData = {
     context: formData.get('context'),
     options,
@@ -42,8 +54,11 @@ export async function getMultipleChoiceAdviceAction(prevState: any, formData: Fo
 
   if (!validation.success) {
     const fieldErrors = validation.error.flatten().fieldErrors;
-    return { error: fieldErrors.context?.[0] || fieldErrors.options?.[0] || 'Entrada inválida.' };
+    const contextError = fieldErrors.context?.[0];
+    const optionsError = (fieldErrors.options as unknown as string[])?.[0];
+    return { error: contextError || optionsError || 'Entrada inválida.' };
   }
+
   try {
     const result = await getMultipleChoiceDecisionAdvice({ context: validation.data.context, options: validation.data.options });
     return { advice: result.advice };
@@ -52,6 +67,7 @@ export async function getMultipleChoiceAdviceAction(prevState: any, formData: Fo
     return { error: 'Falha ao obter conselho da IA. Por favor, tente novamente.' };
   }
 }
+
 
 const financialAnalysisSchema = z.object({
   context: z.string().min(10, 'Por favor, forneça mais contexto para a decisão financeira.'),
