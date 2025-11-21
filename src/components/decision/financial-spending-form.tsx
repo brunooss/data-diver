@@ -18,10 +18,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { getFinancialSpendingAdviceAction, getFinancialTotalsAction, saveFinancialSpendingAction } from '@/app/actions';
+import { getFinancialSpendingAdviceAction, saveFinancialSpendingAction } from '@/app/actions';
 import { AiAdviceCard } from './ai-advice-card';
 import { Loader2 } from 'lucide-react';
-import type { FinancialTotals } from '@/lib/financial-calculations';
+import { calculateConsortiumTotal, calculateFinancingTotal, type FinancialTotals } from '@/lib/financial-calculations';
 
 const formSchema = z.object({
   context: z.string().min(10, 'Por favor, forneça mais contexto para a decisão.'),
@@ -73,20 +73,17 @@ export function FinancialSpendingForm() {
         installments: 60,
       }
     },
+    mode: 'onChange',
   });
 
   const watchedData = useWatch({ control: form.control });
 
   useEffect(() => {
-    async function calculateTotals() {
-      const result = await getFinancialTotalsAction(watchedData);
-      if(result.totals) {
-        setTotals(result.totals);
-      }
-    }
     const validation = formSchema.safeParse(watchedData);
     if(validation.success) {
-        calculateTotals();
+        const financingTotal = calculateFinancingTotal(validation.data.financing);
+        const consortiumTotal = calculateConsortiumTotal(validation.data.consortium);
+        setTotals({ financingTotal, consortiumTotal });
     }
   }, [watchedData]);
 

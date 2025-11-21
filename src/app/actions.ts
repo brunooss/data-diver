@@ -316,10 +316,6 @@ export async function getWeightedSuggestionsAction(prevState: any, formData: For
 }
 
 
-export async function getFinancialTotalsAction(data: unknown) {
-    return handleFinancialTotals(data);
-}
-
 export async function saveYesNoDecisionAction(data: unknown) {
     return await handleSaveYesNoDecision(data);
 }
