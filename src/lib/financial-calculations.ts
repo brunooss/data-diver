@@ -16,6 +16,16 @@ export type FinancialTotals = {
     consortiumTotal: number;
 }
 
+export type Criterion = {
+  name: string;
+  weight: number;
+};
+
+export type Option = {
+  name: string;
+  scores: Record<string, number>;
+};
+
 export function calculateFinancingTotal({ totalValue, downPayment, interestRate, installments }: FinancingDetails): number {
     if (interestRate === 0) {
         return totalValue;
@@ -34,4 +44,23 @@ export function calculateFinancingTotal({ totalValue, downPayment, interestRate,
 export function calculateConsortiumTotal({ totalValue, adminFee }: ConsortiumDetails): number {
     const total = totalValue * (1 + adminFee / 100);
     return isNaN(total) ? 0 : total;
+}
+
+export function calculateWeightedScores({ criteria, options }: { criteria: Criterion[], options: Option[] }) {
+    if (!criteria || !options) return [];
+
+    return options.map(opt => {
+        if(!opt.name) return { name: '', score: 0 };
+
+        const totalScore = criteria.reduce((acc, crit) => {
+          if (!crit.name || crit.weight === 0) return acc;
+          const score = opt.scores[crit.name] || 0;
+          const weight = crit.weight / 100;
+          return acc + (score * weight);
+        }, 0);
+        
+        return { name: opt.name, score: totalScore };
+    })
+    .filter(s => s.name)
+    .sort((a, b) => b.score - a.score);
 }

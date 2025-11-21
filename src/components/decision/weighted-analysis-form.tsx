@@ -18,6 +18,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import { Skeleton } from '../ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
+import { calculateWeightedScores } from '@/lib/financial-calculations';
 
 const criterionSchema = z.object({
   name: z.string().min(1, 'O nome do critério não pode estar vazio.'),
@@ -84,17 +85,7 @@ export function WeightedAnalysisForm() {
   }, [watchedCriteria]);
 
   const finalScores = useMemo(() => {
-    if (!watchedCriteria || !watchedOptions) return [];
-    return watchedOptions.map(opt => {
-        if(!opt.name) return { name: '', score: 0 };
-        const totalScore = watchedCriteria.reduce((acc, crit) => {
-          if (!crit.name || crit.weight === 0) return acc;
-          const score = opt.scores[crit.name] || 0;
-          const weight = crit.weight / 100;
-          return acc + (score * weight);
-        }, 0);
-        return { name: opt.name, score: totalScore };
-    }).filter(s => s.name).sort((a, b) => b.score - a.score);
+    return calculateWeightedScores({ criteria: watchedCriteria, options: watchedOptions });
   }, [watchedCriteria, watchedOptions]);
   
   useEffect(() => {
