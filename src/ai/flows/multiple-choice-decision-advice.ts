@@ -1,4 +1,3 @@
-// src/ai/flows/multiple-choice-decision-advice.ts
 'use server';
 /**
  * @fileOverview Provides AI-generated advice for making decisions with multiple options.
@@ -26,7 +25,7 @@ export type MultipleChoiceDecisionAdviceInput = z.infer<
 >;
 
 const MultipleChoiceDecisionAdviceOutputSchema = z.object({
-  advice: z.string().describe('AI-generated advice for choosing the best option.'),
+  advice: z.string().describe('AI-generated advice for choosing the best option, formatted as Markdown.'),
 });
 
 export type MultipleChoiceDecisionAdviceOutput = z.infer<
@@ -43,18 +42,16 @@ const prompt = ai.definePrompt({
   name: 'multipleChoiceDecisionAdvicePrompt',
   input: {schema: MultipleChoiceDecisionAdviceInputSchema},
   output: {schema: MultipleChoiceDecisionAdviceOutputSchema},
-  prompt: `Dado o seguinte contexto de decisão e opções, forneça conselhos gerados por IA para ajudar a escolher a melhor opção.
+  prompt: `Dado o seguinte contexto de decisão e opções, forneça conselhos gerados por IA para ajudar a escolher a melhor opção. A resposta deve ser em formato Markdown.
 
 Contexto: {{{context}}}
 
 Opções:
 {{#each options}}
-- {{{this.value}}}: {{{this.description}}}
+- **{{{this.value}}}**: {{{this.description}}}
 {{/each}}
 
-Analise os prós e contras de cada opção com base nas descrições fornecidas e dê uma recomendação clara.
-
-Conselho:`,
+Analise os prós e contras de cada opção com base nas descrições fornecidas e dê uma recomendação clara. Use listas e negrito para estruturar sua resposta em Markdown.`,
 });
 
 const multipleChoiceDecisionAdviceFlow = ai.defineFlow(

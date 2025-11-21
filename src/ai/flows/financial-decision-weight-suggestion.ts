@@ -21,7 +21,7 @@ const FinancialWeightOutputSchema = z.object({
     .array(z.object({
       fixedCostWeight: z.number().describe('Suggested weight for fixed costs (0-1).'),
       variableCostWeight: z.number().describe('Suggested weight for variable costs (0-1).'),
-      rationale: z.string().describe('The rationale behind the suggested weights.'),
+      rationale: z.string().describe('The rationale behind the suggested weights, in Markdown format.'),
     }))
     .describe('A list of suggested weights for fixed and variable costs.'),
 });
@@ -41,6 +41,7 @@ Contexto: {{{context}}}
 
 Forneça uma variedade de sugestões com pesos diferentes e uma breve justificativa para cada sugestão.
 Certifique-se de que fixedCostWeight e variableCostWeight somem 1 para cada sugestão.
+Formate a justificativa (rationale) usando Markdown.
 `,
 });
 

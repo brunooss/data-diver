@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Lightbulb } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 
 type AiAdviceCardProps = {
   advice?: string | null;
@@ -39,7 +40,9 @@ export function AiAdviceCard({ advice, isLoading }: AiAdviceCardProps) {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <p className="text-foreground/80">{advice}</p>
+        <div className="prose prose-sm dark:prose-invert max-w-none text-foreground/80">
+          <ReactMarkdown>{advice}</ReactMarkdown>
+        </div>
       </CardContent>
     </Card>
   );

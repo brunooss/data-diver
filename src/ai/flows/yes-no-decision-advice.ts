@@ -17,7 +17,7 @@ const YesNoDecisionAdviceInputSchema = z.object({
 export type YesNoDecisionAdviceInput = z.infer<typeof YesNoDecisionAdviceInputSchema>;
 
 const YesNoDecisionAdviceOutputSchema = z.object({
-  advice: z.string().describe('AI-generated advice for the Yes/No decision.'),
+  advice: z.string().describe('AI-generated advice for the Yes/No decision, formatted in Markdown.'),
 });
 export type YesNoDecisionAdviceOutput = z.infer<typeof YesNoDecisionAdviceOutputSchema>;
 
@@ -38,7 +38,7 @@ const yesNoDecisionPrompt = ai.definePrompt({
   Contexto: {{{context}}}
 
   Considere os benefícios potenciais, riscos e opções alternativas. O conselho deve ser sucinto e fácil de entender.
-  Concentre-se nos melhores interesses e bem-estar do usuário. A saída deve ser um único parágrafo.
+  Concentre-se nos melhores interesses e bem-estar do usuário. A saída deve ser em formato Markdown, usando listas e negrito para destacar os pontos principais.
   `,
 });
 

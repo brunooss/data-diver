@@ -26,7 +26,7 @@ const FinancialSpendingAdviceInputSchema = z.object({
 export type FinancialSpendingAdviceInput = z.infer<typeof FinancialSpendingAdviceInputSchema>;
 
 const FinancialSpendingAdviceOutputSchema = z.object({
-  advice: z.string().describe('Conselho gerado por IA comparando as duas opções financeiras.'),
+  advice: z.string().describe('Conselho gerado por IA comparando as duas opções financeiras, formatado como Markdown.'),
 });
 export type FinancialSpendingAdviceOutput = z.infer<typeof FinancialSpendingAdviceOutputSchema>;
 
@@ -38,7 +38,7 @@ const prompt = ai.definePrompt({
   name: 'financialSpendingAdvicePrompt',
   input: { schema: FinancialSpendingAdviceInputSchema },
   output: { schema: FinancialSpendingAdviceOutputSchema },
-  prompt: `Você é um consultor financeiro especialista. Analise a seguinte decisão financeira e forneça um conselho claro e conciso para o usuário.
+  prompt: `Você é um consultor financeiro especialista. Analise a seguinte decisão financeira e forneça um conselho claro e conciso para o usuário, formatado em Markdown.
 
 Contexto da Decisão: {{{context}}}
 
@@ -53,7 +53,7 @@ Opção 2: Consórcio
 - Taxa de Administração: {{{consortium.adminFee}}}%
 - Parcelas: {{{consortium.installments}}}
 
-Compare os prós e contras de cada opção, considerando o custo total, a liquidez, o tempo para aquisição do bem e outros fatores relevantes. Dê uma recomendação fundamentada sobre qual opção parece mais vantajosa para o cenário apresentado. Seja direto e objetivo.`,
+Compare os prós e contras de cada opção, usando listas e negrito para destacar pontos importantes. Considere o custo total, a liquidez, o tempo para aquisição do bem e outros fatores relevantes. Dê uma recomendação fundamentada sobre qual opção parece mais vantajosa para o cenário apresentado. Seja direto e objetivo. Use o formato Markdown.`,
 });
 
 const financialSpendingAdviceFlow = ai.defineFlow(

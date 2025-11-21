@@ -15,6 +15,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import { Skeleton } from '../ui/skeleton';
+import ReactMarkdown from 'react-markdown';
+
 
 const formSchema = z.object({
   context: z.string().min(10, 'Por favor, forneça mais contexto para a decisão financeira.'),
@@ -175,7 +177,9 @@ export function FinancialAnalysisForm() {
                       <p>Peso do Custo Fixo: {suggestion.fixedCostWeight.toFixed(2)}</p>
                       <p>Peso do Custo Variável: {suggestion.variableCostWeight.toFixed(2)}</p>
                     </div>
-                    <p className="text-sm text-foreground/80 mt-2">{suggestion.rationale}</p>
+                    <div className="prose prose-sm dark:prose-invert max-w-none text-foreground/80 mt-2">
+                      <ReactMarkdown>{suggestion.rationale}</ReactMarkdown>
+                    </div>
                   </CardContent>
                 </Card>
               ))}
