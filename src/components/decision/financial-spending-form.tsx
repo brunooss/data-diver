@@ -18,7 +18,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { getFinancialSpendingAdviceAction, getFinancialTotalsAction } from '@/app/actions';
 import { AiAdviceCard } from './ai-advice-card';
 import { Loader2 } from 'lucide-react';
@@ -140,13 +139,15 @@ export function FinancialSpendingForm() {
                 </FormItem>
               )}
             />
-            <Tabs defaultValue="financing" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="financing">Financiamento</TabsTrigger>
-                <TabsTrigger value="consortium">Consórcio</TabsTrigger>
-              </TabsList>
-              <TabsContent value="financing">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+          </CardContent>
+        </Card>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card>
+                <CardHeader>
+                    <CardTitle>Opção 1: Financiamento</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
                     <FormField control={form.control} name="financing.totalValue" render={({ field }) => (
                         <FormItem>
                             <FormLabel>Valor Total do Bem</FormLabel>
@@ -175,14 +176,20 @@ export function FinancialSpendingForm() {
                             <FormMessage />
                         </FormItem>
                     )} />
-                </div>
-                <div className="mt-4 p-4 bg-muted rounded-lg">
-                    <h4 className="font-semibold text-lg">Custo Total Estimado:</h4>
-                    <p className="text-2xl font-bold text-primary">{totals.financingTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
-                </div>
-              </TabsContent>
-              <TabsContent value="consortium">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                </CardContent>
+                <CardFooter>
+                    <div className="w-full p-4 bg-muted rounded-lg">
+                        <h4 className="font-semibold text-lg">Custo Total Estimado:</h4>
+                        <p className="text-2xl font-bold text-primary">{totals.financingTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
+                    </div>
+                </CardFooter>
+            </Card>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>Opção 2: Consórcio</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
                     <FormField control={form.control} name="consortium.totalValue" render={({ field }) => (
                         <FormItem>
                             <FormLabel>Valor Total da Carta</FormLabel>
@@ -204,31 +211,36 @@ export function FinancialSpendingForm() {
                             <FormMessage />
                         </FormItem>
                     )} />
-                </div>
-                <div className="mt-4 p-4 bg-muted rounded-lg">
-                    <h4 className="font-semibold text-lg">Custo Total Estimado:</h4>
-                    <p className="text-2xl font-bold text-primary">{totals.consortiumTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
-                </div>
-              </TabsContent>
-            </Tabs>
+                </CardContent>
+                <CardFooter>
+                    <div className="w-full p-4 bg-muted rounded-lg">
+                        <h4 className="font-semibold text-lg">Custo Total Estimado:</h4>
+                        <p className="text-2xl font-bold text-primary">{totals.consortiumTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
+                    </div>
+                </CardFooter>
+            </Card>
+        </div>
 
-          </CardContent>
-          <CardFooter className="flex flex-col gap-4">
-            <SubmitButton />
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" disabled={!form.formState.isValid} className="w-full">Tomar uma Decisão</Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width]">
-                <DropdownMenuItem onSelect={() => handleDecision('Financiamento')}>
-                    Financiamento
-                </DropdownMenuItem>
-                <DropdownMenuItem onSelect={() => handleDecision('Consórcio')}>
-                    Consórcio
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </CardFooter>
+        <Card>
+            <CardHeader>
+                <CardTitle>Ação</CardTitle>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-4">
+                <SubmitButton />
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" disabled={!form.formState.isValid} className="w-full">Tomar uma Decisão</Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width]">
+                    <DropdownMenuItem onSelect={() => handleDecision('Financiamento')}>
+                        Financiamento
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onSelect={() => handleDecision('Consórcio')}>
+                        Consórcio
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+            </CardContent>
         </Card>
         
         <AiAdviceCard advice={state.advice} isLoading={isPending} />
