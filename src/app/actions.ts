@@ -5,6 +5,7 @@ import { getYesNoDecisionAdvice, type YesNoDecisionAdviceInput } from '@/ai/flow
 import { getMultipleChoiceDecisionAdvice, type MultipleChoiceDecisionAdviceInput } from '@/ai/flows/multiple-choice-decision-advice';
 import { suggestFinancialWeights, type FinancialWeightInput } from '@/ai/flows/financial-decision-weight-suggestion';
 import { getFinancialSpendingAdvice, type FinancialSpendingAdviceInput } from '@/ai/flows/financial-spending-advice';
+import { calculateConsortiumTotal, calculateFinancingTotal } from '@/lib/financial-calculations';
 
 // Schemas
 const yesNoSchema = z.object({
@@ -104,6 +105,22 @@ export async function handleFinancialSpendingAdvice(data: unknown) {
   }
 }
 
+
+export async function handleFinancialTotals(data: unknown) {
+    const validation = financialSpendingSchema.safeParse(data);
+    if (!validation.success) {
+      return { error: 'Dados inválidos.' };
+    }
+    try {
+      const financingTotal = calculateFinancingTotal(validation.data.financing);
+      const consortiumTotal = calculateConsortiumTotal(validation.data.consortium);
+      return { totals: { financingTotal, consortiumTotal } };
+    } catch (e) {
+      console.error(e);
+      return { error: 'Falha ao calcular totais.' };
+    }
+}
+
 // --- Server Actions (Boundary) ---
 
 export async function getYesNoAdviceAction(prevState: any, formData: FormData) {
@@ -150,4 +167,9 @@ export async function getFinancialSpendingAdviceAction(prevState: any, formData:
   };
 
   return handleFinancialSpendingAdvice(rawData);
+}
+
+
+export async function getFinancialTotalsAction(data: unknown) {
+    return handleFinancialTotals(data);
 }

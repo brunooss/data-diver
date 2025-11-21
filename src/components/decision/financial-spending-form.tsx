@@ -1,7 +1,7 @@
 'use client';
 
 import { useForm, useWatch } from 'react-hook-form';
-import { useActionState, useEffect, useMemo } from 'react';
+import { useActionState, useEffect, useState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -19,9 +19,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { getFinancialSpendingAdviceAction } from '@/app/actions';
+import { getFinancialSpendingAdviceAction, getFinancialTotalsAction } from '@/app/actions';
 import { AiAdviceCard } from './ai-advice-card';
 import { Loader2 } from 'lucide-react';
+import type { FinancialTotals } from '@/lib/financial-calculations';
 
 const formSchema = z.object({
   context: z.string().min(10, 'Por favor, forneça mais contexto para a decisão.'),
@@ -54,6 +55,7 @@ export function FinancialSpendingForm() {
   const [state, formAction, isPending] = useActionState(getFinancialSpendingAdviceAction, { advice: null, error: null });
   const { addDecision } = useDecisionHistory();
   const { toast } = useToast();
+  const [totals, setTotals] = useState<FinancialTotals>({ financingTotal: 0, consortiumTotal: 0 });
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -73,28 +75,21 @@ export function FinancialSpendingForm() {
     },
   });
 
-  const financingData = useWatch({ control: form.control, name: 'financing' });
-  const consortiumData = useWatch({ control: form.control, name: 'consortium' });
+  const watchedData = useWatch({ control: form.control });
 
-  const financingTotal = useMemo(() => {
-    const { totalValue, downPayment, interestRate, installments } = financingData;
-    if (interestRate === 0) {
-      return totalValue;
+  useEffect(() => {
+    async function calculateTotals() {
+      const result = await getFinancialTotalsAction(watchedData);
+      if(result.totals) {
+        setTotals(result.totals);
+      }
     }
-    const principal = totalValue - downPayment;
-    const monthlyRate = interestRate / 100;
-    if (principal <= 0) return downPayment;
-    
-    // M = P * [r(1+r)^n] / [(1+r)^n - 1]
-    const monthlyPayment = principal * (monthlyRate * Math.pow(1 + monthlyRate, installments)) / (Math.pow(1 + monthlyRate, installments) - 1);
-    
-    return downPayment + (monthlyPayment * installments);
-  }, [financingData]);
+    const validation = formSchema.safeParse(watchedData);
+    if(validation.success) {
+        calculateTotals();
+    }
+  }, [watchedData]);
 
-  const consortiumTotal = useMemo(() => {
-    const { totalValue, adminFee } = consortiumData;
-    return totalValue * (1 + adminFee / 100);
-  }, [consortiumData]);
   
   useEffect(() => {
     if (state.error) {
@@ -183,7 +178,7 @@ export function FinancialSpendingForm() {
                 </div>
                 <div className="mt-4 p-4 bg-muted rounded-lg">
                     <h4 className="font-semibold text-lg">Custo Total Estimado:</h4>
-                    <p className="text-2xl font-bold text-primary">{financingTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
+                    <p className="text-2xl font-bold text-primary">{totals.financingTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
                 </div>
               </TabsContent>
               <TabsContent value="consortium">
@@ -212,7 +207,7 @@ export function FinancialSpendingForm() {
                 </div>
                 <div className="mt-4 p-4 bg-muted rounded-lg">
                     <h4 className="font-semibold text-lg">Custo Total Estimado:</h4>
-                    <p className="text-2xl font-bold text-primary">{consortiumTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
+                    <p className="text-2xl font-bold text-primary">{totals.consortiumTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
                 </div>
               </TabsContent>
             </Tabs>
