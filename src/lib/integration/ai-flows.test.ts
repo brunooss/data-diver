@@ -15,9 +15,20 @@ vi.mock('@/ai/genkit', async () => {
   return {
     ai: {
       ...genkit({}),
-      defineFlow: vi.fn().mockImplementation((_config, implementation) => {
-        // Replace the flow implementation with our mock so we can intercept calls
-        return (...args: any[]) => mockFlow(...args, implementation);
+      defineFlow: vi.fn().mockImplementation((config, implementation) => {
+        // This is the actual function that will be called by the tests.
+        // It simulates the behavior of a real Genkit flow by returning a predictable object.
+        return async (input: any) => {
+          // Based on the flow name, return a mock response that matches the expected output schema.
+          if (config.name.includes('yesNo') || config.name.includes('multipleChoice') || config.name.includes('financialSpending')) {
+            return { advice: 'This is mock advice.' };
+          }
+          if (config.name.includes('Suggestion')) {
+             return { suggestions: [{ name: 'mockSuggestion', weight: 100, rationale: 'mock'}] };
+          }
+          // Default fallback
+          return {};
+        };
       }),
       definePrompt: vi.fn(), // We don't need the implementation for this test
     },
